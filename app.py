@@ -14,7 +14,7 @@ from telegram.ext import (
 # Configurações
 # ------------------------------
 # Coloque seu token diretamente aqui (atenção: evite expor esse token em produção)
-BOT_TOKEN = "6333929876:AAHVBeNeA3w4a0mc0U5K1HZ3OlwDazMfecw"
+BOT_TOKEN = "7036731628:AAGbON5-PPN6vYi656Mcoo0oCgGZMS0oYRs:"
 ADMIN_ID = 6460184219
 
 # Configuração de logging
