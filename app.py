@@ -97,13 +97,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     # Responder ao usuário com as informações e mensagem de boas-vindas
     welcome_message = (
-        "👋 <b>Olá, seja bem-vindo(a)!</b>\n\n"
-       
-        "❓ <b>Deseja enviar uma mensagem anônima?</b>\n\n"
-        "🔒 <b>Sua identidade está completamente protegida!</b>\n"
-        "📸 Envie fotos, vídeos ou GIFs\n"
-        "⚠️ Botões e legendas serão removidos automaticamente"
-    )
+    "✨ <b>Bem-vindo!</b> ✨\n\n"
+    "Você pode enviar <b>mensagens</b> ou <b>mídias</b> (fotos, vídeos ou GIFs) e o bot as enviará de volta para você, "
+    "garantindo que sua identidade permaneça totalmente oculta.\n\n"
+    "🔒 <b>Sua privacidade é nossa prioridade!</b>\n"
+    "⚠️ <i>Observação:</i> Botões e legendas serão removidos automaticamente.\n\n"
+    "👉 <b>Experimente agora!</b> Envie seu conteúdo e confira o resultado."
+)
+
     await update.message.reply_text(welcome_message, parse_mode="HTML")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
