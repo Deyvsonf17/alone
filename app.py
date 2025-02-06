@@ -98,10 +98,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Responder ao usuário com as informações e mensagem de boas-vindas
     welcome_message = (
         "👋 <b>Olá, seja bem-vindo(a)!</b>\n\n"
-        "Você iniciou o bot com os seguintes dados:\n"
-        f"• ID: {user_id}\n"
-        f"• Nome: {user_name}\n"
-        f"• Username: @{username}\n\n"
+       
         "❓ <b>Deseja enviar uma mensagem anônima?</b>\n\n"
         "🔒 <b>Sua identidade está completamente protegida!</b>\n"
         "📸 Envie fotos, vídeos ou GIFs\n"
