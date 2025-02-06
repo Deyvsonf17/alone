@@ -14,7 +14,7 @@ from telegram.ext import (
 # Configurações
 # ------------------------------
 # Coloque seu token diretamente aqui (atenção: evite expor esse token em produção)
-BOT_TOKEN = "7036731628:AAGbON5-PPN6vYi656Mcoo0oCgGZMS0oYRs"
+BOT_TOKEN = "6333929876:AAHVBeNeA3w4a0mc0U5K1HZ3OlwDazMfecw"
 ADMIN_ID = 6460184219
 
 # Configuração de logging
@@ -78,10 +78,30 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 # ------------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Responde ao comando /start.
+    Responde ao comando /start e envia um aviso com as informações do usuário.
     """
+    # Obter informações do usuário
+    user = update.message.from_user
+    user_id = update.message.chat_id
+    user_name = user.first_name or "N/A"
+    username = user.username or "N/A"
+    
+    # Enviar aviso com as informações do usuário para o administrador
+    info_message = (
+        f"👤 <b>Nova interação via /start:</b>\n\n"
+        f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+        f"🔹 <b>Nome:</b> {user_name}\n"
+        f"🔹 <b>Username:</b> @{username}"
+    )
+    await context.bot.send_message(chat_id=ADMIN_ID, text=info_message, parse_mode="HTML")
+    
+    # Responder ao usuário com as informações e mensagem de boas-vindas
     welcome_message = (
         "👋 <b>Olá, seja bem-vindo(a)!</b>\n\n"
+        "Você iniciou o bot com os seguintes dados:\n"
+        f"• ID: {user_id}\n"
+        f"• Nome: {user_name}\n"
+        f"• Username: @{username}\n\n"
         "❓ <b>Deseja enviar uma mensagem anônima?</b>\n\n"
         "🔒 <b>Sua identidade está completamente protegida!</b>\n"
         "📸 Envie fotos, vídeos ou GIFs\n"
