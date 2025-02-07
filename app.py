@@ -1,13 +1,14 @@
 import asyncio
 import logging
 import html
+import httpx
 from telegram import (
     Update,
     InputMediaPhoto,
     InputMediaVideo,
+    InputMediaAnimation,
     InlineKeyboardMarkup,
-    InlineKeyboardButton,
-    InputMediaAnimation
+    InlineKeyboardButton
 )
 from telegram.ext import (
     Application,
@@ -21,11 +22,9 @@ from telegram.ext import (
 # ------------------------------
 # Configurações
 # ------------------------------
-# Coloque seu token diretamente aqui (atenção: mantenha-o em segredo!)
 BOT_TOKEN = "7036731628:AAGbON5-PPN6vYi656Mcoo0oCgGZMS0oYRs"
 ADMIN_ID = 6460184219
 
-# Configuração de logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -36,9 +35,6 @@ logger = logging.getLogger(__name__)
 # Funções Auxiliares
 # ------------------------------
 def safe_escape(text: str) -> str:
-    """
-    Escapa caracteres especiais de forma segura.
-    """
     try:
         return html.escape(text).encode("utf-16", "surrogatepass").decode("utf-16") if text else ""
     except Exception as e:
@@ -46,9 +42,6 @@ def safe_escape(text: str) -> str:
         return "[Conteúdo não legível]"
 
 async def notificar_erro(context: ContextTypes.DEFAULT_TYPE, error: Exception, user_id: int = None) -> None:
-    """
-    Notifica o administrador em caso de erro.
-    """
     error_message = (
         f"❌ <b>Erro Detectado:</b>\n\n"
         f"<b>Detalhes:</b> {error}\n"
@@ -60,42 +53,28 @@ async def notificar_erro(context: ContextTypes.DEFAULT_TYPE, error: Exception, u
         logger.critical(f"Erro ao notificar o admin: {e}")
 
 async def enviar_info_usuario(user_id: int, user_name: str, username: str, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Envia informações da nova interação para o administrador.
-    """
     user_info = (
         f"👤 <b>Nova interação:</b>\n\n"
         f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
         f"🔹 <b>Nome:</b> {user_name}\n"
-        f"🔹 <b>Username:</b> @{username}"
+        f"🔹 <b>Username:</b> @{username if username != 'N/A' else 'N/A'}"
     )
     await context.bot.send_message(chat_id=ADMIN_ID, text=user_info, parse_mode="HTML")
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Captura e registra erros não tratados.
-    """
     logger.error("Exceção não tratada:", exc_info=context.error)
     error_msg = "⚠️ Ocorreu um erro inesperado. Tente novamente mais tarde."
     if update and isinstance(update, Update):
         await update.effective_message.reply_text(error_msg)
     await notificar_erro(context, context.error)
 
-
-import httpx
-
-# Cria um client httpx com timeout aumentado
-client = httpx.AsyncClient(timeout=httpx.Timeout(30.0))  # timeout de 30 segundos
-
 # ------------------------------
 # Handlers de Mensagens
 # ------------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Responde ao comando /start e envia uma mensagem de boas-vindas.
-    """
     user = update.message.from_user
-    user_id = update.message.chat_id
+    # Para chats privados, chat_id é igual ao user.id
+    user_id = update.message.chat_id  
     user_name = user.first_name or "N/A"
     username = user.username or "N/A"
     
@@ -105,7 +84,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"🔹 <b>Nome:</b> {user_name}\n"
         f"🔹 <b>Username:</b> @{username}"
     )
+    # Envia as informações para o ADM
     await context.bot.send_message(chat_id=ADMIN_ID, text=info_message, parse_mode="HTML")
+    
     welcome_message = (
     "✨ <b>Bem-vindo!</b> ✨\n\n"
     "📩 <b>Envie mensagens ou mídias</b> (📷 fotos, 🎥 vídeos ou 🎞️ GIFs), e o bot os reenviará para você **sem exibir sua identidade**.\n\n"
@@ -260,9 +241,9 @@ async def receber_texto_unificado(update: Update, context: ContextTypes.DEFAULT_
 
 async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_TYPE, caption: str) -> None:
     """
-    Envia um álbum de mídias (fotos, vídeos e GIFs) garantindo que:
-      - Fotos e vídeos sejam enviados em grupos de até 10 itens.
-      - GIFs sejam enviados individualmente, sempre com legenda aplicada.
+    Envia as mídias para o administrador e para o usuário conforme as regras:
+    - O ADMIN recebe primeiro as informações do usuário e depois as mídias.
+    - O USUÁRIO recebe apenas as mídias, com a legenda se ele adicionou.
     """
     await asyncio.sleep(3)  # Aguarda um tempo para agregar todas as mídias
 
@@ -272,6 +253,17 @@ async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_
     try:
         group_media = []      # Lista para fotos e vídeos agrupáveis
         individual_gifs = []  # Lista para animações (GIFs) que devem ser enviadas separadamente
+
+        # Informações do usuário para o administrador
+        user_info = (
+            f"👤 <b>Nova mídia recebida:</b>\n\n"
+            f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+            f"🔹 <b>Nome:</b> {album['user_name']}\n"
+            f"🔹 <b>Username:</b> @{album['username'] if album['username'] != 'N/A' else 'N/A'}\n"
+        )
+
+        # Primeiro, envia as informações do usuário para o ADMIN
+        await context.bot.send_message(chat_id=ADMIN_ID, text=user_info, parse_mode="HTML")
 
         # Processa cada mídia e separa por tipo
         for media in album["media"]:
@@ -284,21 +276,18 @@ async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_
         for i in range(0, len(group_media), 10):
             chunk = group_media[i:i+10]
 
-            # Aplica legenda apenas na primeira mídia do grupo
+            # Define a legenda apenas para a primeira mídia do grupo (Telegram só permite uma legenda por grupo)
             if caption:
-                chunk[0] = (
-                    InputMediaPhoto(media=chunk[0].media, caption=caption)
-                    if isinstance(chunk[0], InputMediaPhoto)
-                    else InputMediaVideo(media=chunk[0].media, caption=caption)
-                )
+                chunk[0] = InputMediaPhoto(media=chunk[0].media, caption=caption, parse_mode="HTML") if isinstance(chunk[0], InputMediaPhoto) else \
+                           InputMediaVideo(media=chunk[0].media, caption=caption, parse_mode="HTML")
 
-            await context.bot.send_media_group(chat_id=user_id, media=chunk)
-            await context.bot.send_media_group(chat_id=ADMIN_ID, media=chunk)
+            await context.bot.send_media_group(chat_id=user_id, media=chunk)  # Para o usuário (sem informações)
+            await context.bot.send_media_group(chat_id=ADMIN_ID, media=chunk)  # Para o administrador
 
-        # 🚀 Envia os GIFs individualmente, garantindo que cada um receba a legenda
+        # Envia os GIFs individualmente, garantindo que todos tenham a legenda
         for gif in individual_gifs:
-            await context.bot.send_animation(chat_id=user_id, animation=gif.media, caption=caption if caption else None)
-            await context.bot.send_animation(chat_id=ADMIN_ID, animation=gif.media, caption=caption if caption else None)
+            await context.bot.send_animation(chat_id=user_id, animation=gif.media, caption=caption, parse_mode="HTML")
+            await context.bot.send_animation(chat_id=ADMIN_ID, animation=gif.media, caption=caption, parse_mode="HTML") 
 
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
@@ -309,7 +298,6 @@ async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_
         album["user_info_sent"] = False
         album["waiting_for_caption"] = False
         album["question_sent"] = False
-
 # ------------------------------
 # Função Principal
 # ------------------------------
