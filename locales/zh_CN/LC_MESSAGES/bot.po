@@ -53,7 +53,7 @@ msgid "new_media_received"
 msgstr "👤 <b>Nova mídia recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
 
 msgid "select_language"
-msgstr " 🌍 Por favor, escolha seu idioma:"
+msgstr "🌍 Por favor, escolha seu idioma:"
 
 msgid "unexpected_error"
 msgstr "⚠️ Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."

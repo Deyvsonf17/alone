@@ -15,7 +15,7 @@ msgstr    "✨ <b>Welcome!</b> ✨\n\n
 
 
 msgid "select_language"
-msgstr "Select your language:"
+msgstr " 🌍 Select your language:"
 
 msgid "language_changed"
 msgstr "Language changed to: American English"
@@ -24,7 +24,7 @@ msgid "error_detected"
 msgstr "❌ <b>Erro Detectado:</b>\n\n<b>Detalhes:</b> {error}\n<b>Usuário:</b> {user_id}"
 
 msgid "user_interaction"
-msgstr "👤 <b>Nova interação:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
+msgstr "👤 <b>Nova interação: /start </b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
 
 msgid "unsupported_format"
 msgstr "⚠️ Unsupported format!"
@@ -61,7 +61,7 @@ msgstr "👤 <b>Nova mídia recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{
 
 
 msgid "select_language"
-msgstr "Please choose your language:"
+msgstr " 🌍 Please choose your language:"
 
 msgid "unexpected_error"
 msgstr "⚠️ An unexpected error occurred. Please try again later."

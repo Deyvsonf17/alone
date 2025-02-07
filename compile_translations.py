@@ -2,7 +2,7 @@ import os
 import polib
 
 # Lista de idiomas (pasta de cada idioma)
-languages = ['pt_BR', 'en_US', 'es_ES']
+languages = ['pt_BR','zh_CN', 'pt_BR2', 'en_US', 'es_ES']
 base_path = 'locales'
 
 for lang in languages:

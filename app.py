@@ -108,14 +108,10 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 # ------------------------------
 # Handlers de Mensagens
 # ------------------------------
-
-# ------------------------------
-# Handlers de Mensagens
-# ------------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Handler do comando /start.
-    Exibe um menu de seleção de idioma assim que o usuário inicia o bot.
+    Exibe um menu de seleção de idioma e envia informações do usuário para o administrador.
     """
     user = update.message.from_user
 
@@ -126,10 +122,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Carrega o idioma do usuário
     _ = setup_locale(context)
 
+    # Envia informações do usuário para o administrador
+    user_id = user.id
+    user_name = user.first_name or "N/A"
+    username = user.username or "N/A"
+    await enviar_info_usuario(user_id, user_name, username, context)
+
     # Exibe o menu de seleção de idioma
     keyboard = [
         [
-            InlineKeyboardButton("🇧🇷 Português", callback_data="lang_pt_BR"),
+            InlineKeyboardButton("🇧🇷 Português", callback_data="lang_zh_CN"),
             InlineKeyboardButton("🇺🇸 English", callback_data="lang_en_US"),
         ],
         [
@@ -153,7 +155,7 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     _ = setup_locale(context)  # Carrega o idioma do usuário
     keyboard = [
         [
-            InlineKeyboardButton("🇧🇷 Português", callback_data="lang_pt_BR"),
+            InlineKeyboardButton("🇧🇷 Português", callback_data="lang_zh_CN"),
             InlineKeyboardButton("🇺🇸 English", callback_data="lang_en_US"),
         ],
         [
@@ -162,11 +164,6 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(_("select_language"), reply_markup=reply_markup)
-
-
-
-
-
 
 async def language_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -192,20 +189,6 @@ async def language_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         # Mensagem de boas-vindas no idioma escolhido
         welcome_message = _("welcome_message")
         await query.edit_message_text(welcome_message, parse_mode="HTML")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -270,7 +253,7 @@ async def receber_midia(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             await update.message.reply_text(_("caption_warning"))
             await asyncio.sleep(1)
             await update.message.reply_text(_("caption_info"))
-            await asyncio.sleep(2)
+            await asyncio.sleep(0.5)
 
             keyboard = [
                 [InlineKeyboardButton(_("yes_add_caption"), callback_data=f"add_caption_{user_id}")],
@@ -360,13 +343,9 @@ async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_
             await context.bot.send_animation(chat_id=user_id, animation=gif.media, caption=caption, parse_mode="HTML")
             await context.bot.send_animation(chat_id=ADMIN_ID, animation=gif.media, caption=caption, parse_mode="HTML")
 
-
-
-  # Envia a mensagem "Você já pode encaminhar..." ou equivalente
+        # Envia a mensagem "Você já pode encaminhar..." ou equivalente
         forward_message = _("forward_media_message")
         await context.bot.send_message(chat_id=user_id, text=forward_message, parse_mode="HTML")
-
-
 
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
