@@ -1,0 +1,65 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "welcome_message"
+msgstr "✨ <b>¡Bienvenido!</b> ✨\n\n📩 <b>Envía mensajes o medios</b> (📷 fotos, 🎥 vídeos o 🎞️ GIFs), y el bot los reenviará para ti sin mostrar tu identidad.\n\n🔄 El nombre original del reenvío será <b>eliminado</b> y reemplazado por el nombre del bot, garantizando total anonimato.\n\n🔒 <b>¡Tu privacidad es nuestra prioridad!</b>\n\n⚠️ <i>Nota:</i>\n ❌ Los botones y subtítulos serán <b>eliminados automáticamente</b>.\n\n 👉 <b>👉 ¡Pruébalo ahora! Envía tu medio y mira cómo funciona</b>"
+
+msgid "select_language"
+msgstr "Selecciona tu idioma:"
+
+msgid "language_changed"
+msgstr "Idioma cambiado to: Español"
+
+msgid "error_detected"
+msgstr "❌ <b>Erro Detectado:</b>\n\n<b>Detalhes:</b> {error}\n<b>Usuário:</b> {user_id}"
+
+msgid "user_interaction"
+msgstr "👤 <b>Nova interação:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
+
+msgid "unsupported_format"
+msgstr "⚠️ ¡Formato no soportado!"
+
+msgid "caption_warning"
+msgstr "ℹ️ La leyenda original o los botones de la imagen serán eliminados antes de reenviar."
+
+msgid "caption_info"
+msgstr "ℹ️ La leyenda se aplicará a todos los medios enviados de una vez. Si no deseas agregar una leyenda, haz clic en 'No'."
+
+msgid "yes_add_caption"
+msgstr "✅ Sí, agregar leyenda"
+
+msgid "no_add_caption"
+msgstr "❌ No, enviar sin leyenda"
+
+msgid "ask_caption"
+msgstr "📝 ¿Deseas agregar una leyenda a los medios?"
+
+msgid "callback_error"
+msgstr "⚠️ Ocurrió un error al procesar tu respuesta. Por favor, inténtalo de nuevo."
+
+msgid "send_caption"
+msgstr "📝✍️ Envía la leyenda que deseas agregar:"
+
+msgid "no_caption_selected"
+msgstr "❌ Optaste por enviar sin leyenda."
+
+msgid "new_message_received"
+msgstr "📩 <b>Nova mensagem recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}\n\n💬 <b>Mensagem:</b>\n{message}"
+
+msgid "new_media_received"
+msgstr "👤 <b>Nova mídia recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
+
+
+msgid "select_language"
+msgstr "Por favor, elige tu idioma:"
+
+
+msgid "unexpected_error"
+msgstr "⚠️ Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde."
+
+
+msgid "forward_media_message"
+msgstr "🎉 ¡Ahora puedes reenviar los medios enviados por el bot a donde quieras! 🚀"

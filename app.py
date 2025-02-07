@@ -1,3 +1,6 @@
+# ------------------------------
+# Importações
+# ------------------------------
 import asyncio
 import logging
 import html
@@ -18,9 +21,37 @@ from telegram.ext import (
     filters,
     CallbackQueryHandler
 )
+import gettext  # Para internacionalização
+from pathlib import Path  # Para manipulação de caminhos de arquivos
 
 # ------------------------------
-# Configurações
+# Configuração de Internacionalização (i18n)
+# ------------------------------
+LOCALES_DIR = Path(__file__).parent / "locales"  # Diretório das traduções
+
+def setup_locale(context: ContextTypes.DEFAULT_TYPE, lang_code: str = None) -> callable:
+    """
+    Configura o idioma do bot com base no contexto do usuário.
+    """
+    lang = lang_code or 'pt_BR'  # Usa o idioma fornecido ou o padrão
+    if context and 'lang' in context.user_data:
+        lang = context.user_data['lang']
+    
+    try:
+        translation = gettext.translation(
+            'bot',
+            localedir=LOCALES_DIR,
+            languages=[lang],
+            fallback=True
+        )
+        translation.install()
+        return translation.gettext
+    except Exception as e:
+        logger.error(f"Erro ao carregar tradução: {e}")
+        return gettext.gettext
+
+# ------------------------------
+# Configurações do Bot
 # ------------------------------
 BOT_TOKEN = "7036731628:AAGbON5-PPN6vYi656Mcoo0oCgGZMS0oYRs"
 ADMIN_ID = 6460184219
@@ -35,6 +66,9 @@ logger = logging.getLogger(__name__)
 # Funções Auxiliares
 # ------------------------------
 def safe_escape(text: str) -> str:
+    """
+    Escapa caracteres especiais no texto.
+    """
     try:
         return html.escape(text).encode("utf-16", "surrogatepass").decode("utf-16") if text else ""
     except Exception as e:
@@ -42,28 +76,31 @@ def safe_escape(text: str) -> str:
         return "[Conteúdo não legível]"
 
 async def notificar_erro(context: ContextTypes.DEFAULT_TYPE, error: Exception, user_id: int = None) -> None:
-    error_message = (
-        f"❌ <b>Erro Detectado:</b>\n\n"
-        f"<b>Detalhes:</b> {error}\n"
-        f"<b>Usuário:</b> {user_id or 'Desconhecido'}"
-    )
+    """
+    Notifica o administrador sobre erros.
+    """
+    _ = setup_locale(context)  # Carrega o idioma do usuário
+    error_message = _("error_detected").format(error=error, user_id=user_id or 'Desconhecido')
     try:
         await context.bot.send_message(chat_id=ADMIN_ID, text=error_message, parse_mode="HTML")
     except Exception as e:
         logger.critical(f"Erro ao notificar o admin: {e}")
 
 async def enviar_info_usuario(user_id: int, user_name: str, username: str, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_info = (
-        f"👤 <b>Nova interação:</b>\n\n"
-        f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
-        f"🔹 <b>Nome:</b> {user_name}\n"
-        f"🔹 <b>Username:</b> @{username if username != 'N/A' else 'N/A'}"
-    )
+    """
+    Envia informações do usuário para o administrador.
+    """
+    _ = setup_locale(context)  # Carrega o idioma do usuário
+    user_info = _("user_interaction").format(user_id=user_id, user_name=user_name, username=username)
     await context.bot.send_message(chat_id=ADMIN_ID, text=user_info, parse_mode="HTML")
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Manipula erros não tratados.
+    """
     logger.error("Exceção não tratada:", exc_info=context.error)
-    error_msg = "⚠️ Ocorreu um erro inesperado. Tente novamente mais tarde."
+    _ = setup_locale(context)  # Carrega o idioma do usuário
+    error_msg = _("unexpected_error")
     if update and isinstance(update, Update):
         await update.effective_message.reply_text(error_msg)
     await notificar_erro(context, context.error)
@@ -71,68 +108,134 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 # ------------------------------
 # Handlers de Mensagens
 # ------------------------------
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.message.from_user
-    # Para chats privados, chat_id é igual ao user.id
-    user_id = update.message.chat_id  
-    user_name = user.first_name or "N/A"
-    username = user.username or "N/A"
-    
-    info_message = (
-        f"👤 <b>Nova interação via /start:</b>\n\n"
-        f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
-        f"🔹 <b>Nome:</b> {user_name}\n"
-        f"🔹 <b>Username:</b> @{username}"
-    )
-    # Envia as informações para o ADM
-    await context.bot.send_message(chat_id=ADMIN_ID, text=info_message, parse_mode="HTML")
-    
-    welcome_message = (
-    "✨ <b>Bem-vindo!</b> ✨\n\n"
-    "📩 <b>Envie mensagens ou mídias</b> (📷 fotos, 🎥 vídeos ou 🎞️ GIFs), e o bot os reenviará para você **sem exibir sua identidade**.\n\n"
-    "🔄 O nome original do encaminhamento será <b>removido</b> e substituído pelo nome do bot, garantindo **total anonimato**.\n\n"
-    "🔒 <b>Sua privacidade é nossa prioridade!</b>\n\n"
-    "⚠️ <i>Observação:</i>\n"
-    "❌ Botões e legendas serão <b>automaticamente removidos</b>.\n\n"
-    "👉 <b>Experimente agora!</b>"
-)
 
-    await update.message.reply_text(welcome_message, parse_mode="HTML")
+# ------------------------------
+# Handlers de Mensagens
+# ------------------------------
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Handler do comando /start.
+    Exibe um menu de seleção de idioma assim que o usuário inicia o bot.
+    """
+    user = update.message.from_user
+
+    # Define o idioma padrão (se ainda não estiver definido)
+    if 'lang' not in context.user_data:
+        context.user_data['lang'] = 'pt_BR'  # Idioma padrão
+
+    # Carrega o idioma do usuário
+    _ = setup_locale(context)
+
+    # Exibe o menu de seleção de idioma
+    keyboard = [
+        [
+            InlineKeyboardButton("🇧🇷 Português", callback_data="lang_pt_BR"),
+            InlineKeyboardButton("🇺🇸 English", callback_data="lang_en_US"),
+        ],
+        [
+            InlineKeyboardButton("🇪🇸 Español", callback_data="lang_es_ES")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Mensagem de boas-vindas com instruções para escolher o idioma
+    welcome_message = _("welcome_message")
+    welcome_msg = await update.message.reply_text(welcome_message, parse_mode="HTML")
+    await update.message.reply_text(_("select_language"), reply_markup=reply_markup)
+
+    # Armazenar o ID da mensagem de boas-vindas para edição posterior
+    context.user_data['welcome_msg_id'] = welcome_msg.message_id
+
+async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Handler para escolher o idioma.
+    """
+    _ = setup_locale(context)  # Carrega o idioma do usuário
+    keyboard = [
+        [
+            InlineKeyboardButton("🇧🇷 Português", callback_data="lang_pt_BR"),
+            InlineKeyboardButton("🇺🇸 English", callback_data="lang_en_US"),
+        ],
+        [
+            InlineKeyboardButton("🇪🇸 Español", callback_data="lang_es_ES")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(_("select_language"), reply_markup=reply_markup)
+
+
+
+
+
+
+async def language_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Handler para processar a escolha de idioma.
+    """
+    query = update.callback_query
+    lang_code = query.data.split("_")[1]
+    
+    # Armazena o idioma escolhido no contexto do usuário
+    context.user_data['lang'] = lang_code
+    
+    # Carrega o idioma específico para este usuário
+    _ = setup_locale(context, lang_code)
+    
+    # Confirma a mudança de idioma
+    await query.answer()
+
+    # Apaga a mensagem de boas-vindas original
+    if 'welcome_msg_id' in context.user_data:
+        welcome_msg_id = context.user_data['welcome_msg_id']
+        await context.bot.delete_message(chat_id=query.message.chat_id, message_id=welcome_msg_id)
+        
+        # Mensagem de boas-vindas no idioma escolhido
+        welcome_message = _("welcome_message")
+        await query.edit_message_text(welcome_message, parse_mode="HTML")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Processa mensagens de texto normais (quando o bot não está aguardando legenda).
+    Processa mensagens de texto.
     """
+    _ = setup_locale(context)  # Carrega o idioma do usuário
     user_id = update.message.chat_id
     try:
         user_name = update.message.from_user.first_name or "N/A"
         username = update.message.from_user.username or "N/A"
         mensagem = update.message.text
 
-        mensagem_info = (
-            f"📩 <b>Nova mensagem recebida:</b>\n\n"
-            f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
-            f"🔹 <b>Nome:</b> {user_name}\n"
-            f"🔹 <b>Username:</b> @{username}\n\n"
-            f"💬 <b>Mensagem:</b>\n{safe_escape(mensagem)}"
+        mensagem_info = _("new_message_received").format(
+            user_id=user_id,
+            user_name=user_name,
+            username=username,
+            message=safe_escape(mensagem)
         )
         await context.bot.send_message(chat_id=ADMIN_ID, text=mensagem_info, parse_mode="HTML")
         await update.message.reply_text(mensagem)
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
 
-
-
-import asyncio
-
 async def receber_midia(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Processa mídias (foto, vídeo, GIF) e pergunta se o usuário deseja adicionar legenda.
-    Se o usuário enviar um álbum (múltiplas mídias) de uma só vez, a pergunta será feita apenas uma vez.
+    Processa mídias (fotos, vídeos, GIFs).
     """
+    _ = setup_locale(context)  # Carrega o idioma do usuário
     user_id = update.message.chat_id
     try:
-        # Obtém ou inicializa o álbum do usuário (armazenado em context.user_data["albums"])
         user_albums = context.user_data.setdefault("albums", {})
         album = user_albums.setdefault(user_id, {
             "media": [],
@@ -140,96 +243,74 @@ async def receber_midia(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "timer": None,
             "user_info_sent": False,
             "waiting_for_caption": False,
-            "question_sent": False,  # flag para enviar a pergunta apenas uma vez
+            "question_sent": False,
             "user_name": None,
             "username": None,
         })
 
-        # Armazena as informações do usuário (caso ainda não estejam armazenadas)
         if album["user_name"] is None:
             album["user_name"] = update.message.from_user.first_name or "N/A"
         if album["username"] is None:
             album["username"] = update.message.from_user.username or "N/A"
 
-        # Cria o objeto InputMedia de acordo com o tipo de mídia
         if update.message.photo:
             media = InputMediaPhoto(media=update.message.photo[-1].file_id)
         elif update.message.video:
             media = InputMediaVideo(media=update.message.video.file_id)
         elif update.message.animation:
-            # Trata animações (GIFs) como InputMediaAnimation
             media = InputMediaAnimation(media=update.message.animation.file_id)
         else:
-            await update.message.reply_text("⚠️ Formato não suportado!")
+            await update.message.reply_text(_("unsupported_format"))
             return
 
-        # Adiciona a mídia ao álbum do usuário
         album["media"].append(media)
-        album["waiting_for_caption"] = False  # garante que o flag esteja zerado
+        album["waiting_for_caption"] = False
 
-        # Se ainda não foi enviada a pergunta para este álbum, envia os textos com intervalo
         if not album["question_sent"]:
-            await update.message.reply_text("ℹ️ A legenda original ou botões da mídia serão removidos antes de reenviar.")
-            await asyncio.sleep(1)  # Pausa de 2 segundos entre mensagens
-            
-            await update.message.reply_text("ℹ️ A legenda será aplicada a todas as mídias enviadas de uma vez. Caso não queira adicionar uma legenda, clique em 'Não'.")
-            await asyncio.sleep(2)  # Pausa de 2 segundos entre mensagens
+            await update.message.reply_text(_("caption_warning"))
+            await asyncio.sleep(1)
+            await update.message.reply_text(_("caption_info"))
+            await asyncio.sleep(2)
 
-            # Adiciona os botões
             keyboard = [
-                [InlineKeyboardButton("✅ Sim, adicionar legenda", callback_data=f"add_caption_{user_id}")],
-                [InlineKeyboardButton("❌ Não, enviar sem legenda", callback_data=f"no_caption_{user_id}")]
+                [InlineKeyboardButton(_("yes_add_caption"), callback_data=f"add_caption_{user_id}")],
+                [InlineKeyboardButton(_("no_add_caption"), callback_data=f"no_caption_{user_id}")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text("📝 Deseja adicionar uma legenda à(s) mídia(s)?", reply_markup=reply_markup)
-            
-
-
-
-
+            await update.message.reply_text(_("ask_caption"), reply_markup=reply_markup)
             album["question_sent"] = True
 
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
 
-
-
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Processa a resposta do usuário sobre adicionar ou não legenda e substitui os botões pela escolha feita.
+    Processa callbacks de botões.
     """
+    _ = setup_locale(context)  # Carrega o idioma do usuário
     query = update.callback_query
     user_id = query.message.chat_id
     callback_data = query.data
 
-    # Obtém o álbum do usuário
     album = context.user_data.get("albums", {}).get(user_id)
     if not album:
-        await query.message.edit_text("⚠️ Ocorreu um erro ao processar sua resposta. Tente novamente.")
+        await query.message.edit_text(_("callback_error"))
         return
 
-    # Define o texto que substituirá os botões
     if f"add_caption_{user_id}" in callback_data:
         album["waiting_for_caption"] = True
-        new_text = "📝✍️  envie a legenda que deseja adicionar:"
+        new_text = _("send_caption")
     elif f"no_caption_{user_id}" in callback_data:
-        new_text = "❌ Você optou por enviar sem legenda."
-        await enviar_album(user_id, album, context, None)  # Envia as mídias sem legenda
+        new_text = _("no_caption_selected")
+        await enviar_album(user_id, album, context, None)
 
-    # Substitui a mensagem com botões pelo novo texto
     await query.message.edit_text(new_text)
-
-
-
-
-
 
 async def receber_texto_unificado(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Handler unificado para mensagens de texto:
-      - Se o bot estiver aguardando legenda, trata a mensagem como legenda.
-      - Caso contrário, trata como mensagem de texto normal.
+    Handler unificado para mensagens de texto.
     """
+    _ = setup_locale(context)  # Carrega o idioma do usuário
     user_id = update.message.chat_id
     album = context.user_data.get("albums", {}).get(user_id)
     if album and album.get("waiting_for_caption"):
@@ -241,83 +322,82 @@ async def receber_texto_unificado(update: Update, context: ContextTypes.DEFAULT_
 
 async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_TYPE, caption: str) -> None:
     """
-    Envia as mídias para o administrador e para o usuário conforme as regras:
-    - O ADMIN recebe primeiro as informações do usuário e depois as mídias.
-    - O USUÁRIO recebe apenas as mídias, com a legenda se ele adicionou.
+    Envia o álbum de mídias para o usuário e o administrador.
     """
-    await asyncio.sleep(3)  # Aguarda um tempo para agregar todas as mídias
+    _ = setup_locale(context)  # Carrega o idioma do usuário
+    await asyncio.sleep(3)
 
     if not album["media"]:
-        return  # Se não houver mídias, sai da função
+        return
 
     try:
-        group_media = []      # Lista para fotos e vídeos agrupáveis
-        individual_gifs = []  # Lista para animações (GIFs) que devem ser enviadas separadamente
+        group_media = []
+        individual_gifs = []
 
-        # Informações do usuário para o administrador
-        user_info = (
-            f"👤 <b>Nova mídia recebida:</b>\n\n"
-            f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
-            f"🔹 <b>Nome:</b> {album['user_name']}\n"
-            f"🔹 <b>Username:</b> @{album['username'] if album['username'] != 'N/A' else 'N/A'}\n"
+        user_info = _("new_media_received").format(
+            user_id=user_id,
+            user_name=album['user_name'],
+            username=album['username']
         )
-
-        # Primeiro, envia as informações do usuário para o ADMIN
         await context.bot.send_message(chat_id=ADMIN_ID, text=user_info, parse_mode="HTML")
 
-        # Processa cada mídia e separa por tipo
         for media in album["media"]:
             if isinstance(media, (InputMediaPhoto, InputMediaVideo)):
                 group_media.append(media)
             elif isinstance(media, InputMediaAnimation):
-                individual_gifs.append(media)  # Armazena os GIFs para envio individual
+                individual_gifs.append(media)
 
-        # Envia fotos e vídeos em grupos de até 10 itens
         for i in range(0, len(group_media), 10):
             chunk = group_media[i:i+10]
-
-            # Define a legenda apenas para a primeira mídia do grupo (Telegram só permite uma legenda por grupo)
             if caption:
                 chunk[0] = InputMediaPhoto(media=chunk[0].media, caption=caption, parse_mode="HTML") if isinstance(chunk[0], InputMediaPhoto) else \
                            InputMediaVideo(media=chunk[0].media, caption=caption, parse_mode="HTML")
 
-            await context.bot.send_media_group(chat_id=user_id, media=chunk)  # Para o usuário (sem informações)
-            await context.bot.send_media_group(chat_id=ADMIN_ID, media=chunk)  # Para o administrador
+            await context.bot.send_media_group(chat_id=user_id, media=chunk)
+            await context.bot.send_media_group(chat_id=ADMIN_ID, media=chunk)
 
-        # Envia os GIFs individualmente, garantindo que todos tenham a legenda
         for gif in individual_gifs:
             await context.bot.send_animation(chat_id=user_id, animation=gif.media, caption=caption, parse_mode="HTML")
-            await context.bot.send_animation(chat_id=ADMIN_ID, animation=gif.media, caption=caption, parse_mode="HTML") 
+            await context.bot.send_animation(chat_id=ADMIN_ID, animation=gif.media, caption=caption, parse_mode="HTML")
+
+
+
+  # Envia a mensagem "Você já pode encaminhar..." ou equivalente
+        forward_message = _("forward_media_message")
+        await context.bot.send_message(chat_id=user_id, text=forward_message, parse_mode="HTML")
+
+
 
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
     finally:
-        # Limpa o álbum para permitir novos envios
         album["media"].clear()
         album["original_captions"].clear()
         album["user_info_sent"] = False
         album["waiting_for_caption"] = False
         album["question_sent"] = False
+
 # ------------------------------
 # Função Principal
 # ------------------------------
 def main() -> None:
     """
-    Configuração e inicialização do bot.
+    Inicializa o bot.
     """
     logger.info("🤖 Bot Anônimo Iniciado")
     app = Application.builder().token(BOT_TOKEN).build()
 
-    # Registrando handlers
+    # Registra os handlers
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("language", set_language))
+    app.add_handler(CallbackQueryHandler(language_callback, pattern="^lang_"))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO | filters.ANIMATION, receber_midia))
     app.add_handler(CallbackQueryHandler(callback_handler))
-    # Handler unificado para mensagens de texto (para legenda ou mensagem normal)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receber_texto_unificado))
     
     app.add_error_handler(error_handler)
 
-    # Inicia o polling
+    # Inicia o bot
     app.run_polling()
 
 if __name__ == "__main__":
