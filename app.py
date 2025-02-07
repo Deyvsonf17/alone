@@ -1,19 +1,27 @@
 import asyncio
 import logging
 import html
-from telegram import Update, InputMediaPhoto, InputMediaVideo
+from telegram import (
+    Update,
+    InputMediaPhoto,
+    InputMediaVideo,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    InputMediaAnimation
+)
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
     ContextTypes,
-    filters
+    filters,
+    CallbackQueryHandler
 )
 
 # ------------------------------
 # Configurações
 # ------------------------------
-# Coloque seu token diretamente aqui (atenção: evite expor esse token em produção)
+# Coloque seu token diretamente aqui (atenção: mantenha-o em segredo!)
 BOT_TOKEN = "7036731628:AAGbON5-PPN6vYi656Mcoo0oCgGZMS0oYRs"
 ADMIN_ID = 6460184219
 
@@ -59,7 +67,7 @@ async def enviar_info_usuario(user_id: int, user_name: str, username: str, conte
         f"👤 <b>Nova interação:</b>\n\n"
         f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
         f"🔹 <b>Nome:</b> {user_name}\n"
-        f"🔹 <b>Username:</b> @{username if username != 'N/A' else 'N/A'}"
+        f"🔹 <b>Username:</b> @{username}"
     )
     await context.bot.send_message(chat_id=ADMIN_ID, text=user_info, parse_mode="HTML")
 
@@ -73,20 +81,24 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.effective_message.reply_text(error_msg)
     await notificar_erro(context, context.error)
 
+
+import httpx
+
+# Cria um client httpx com timeout aumentado
+client = httpx.AsyncClient(timeout=httpx.Timeout(30.0))  # timeout de 30 segundos
+
 # ------------------------------
 # Handlers de Mensagens
 # ------------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Responde ao comando /start e envia um aviso com as informações do usuário.
+    Responde ao comando /start e envia uma mensagem de boas-vindas.
     """
-    # Obter informações do usuário
     user = update.message.from_user
     user_id = update.message.chat_id
     user_name = user.first_name or "N/A"
     username = user.username or "N/A"
     
-    # Enviar aviso com as informações do usuário para o administrador
     info_message = (
         f"👤 <b>Nova interação via /start:</b>\n\n"
         f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
@@ -94,38 +106,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"🔹 <b>Username:</b> @{username}"
     )
     await context.bot.send_message(chat_id=ADMIN_ID, text=info_message, parse_mode="HTML")
-    
-    # Responder ao usuário com as informações e mensagem de boas-vindas
     welcome_message = (
     "✨ <b>Bem-vindo!</b> ✨\n\n"
-    "Você pode enviar <b>mensagens</b> ou <b>mídias</b> (fotos, vídeos ou GIFs) e o bot as enviará de volta para você, "
-    "garantindo que sua identidade permaneça totalmente oculta.\n\n"
-    "🔒 <b>Sua privacidade é nossa prioridade!</b>\n"
-    "⚠️ <i>Observação:</i> Botões e legendas serão removidos automaticamente.\n\n"
-    "👉 <b>Experimente agora!</b> Envie seu conteúdo e confira o resultado."
+    "📩 <b>Envie mensagens ou mídias</b> (📷 fotos, 🎥 vídeos ou 🎞️ GIFs), e o bot os reenviará para você **sem exibir sua identidade**.\n\n"
+    "🔄 O nome original do encaminhamento será <b>removido</b> e substituído pelo nome do bot, garantindo **total anonimato**.\n\n"
+    "🔒 <b>Sua privacidade é nossa prioridade!</b>\n\n"
+    "⚠️ <i>Observação:</i>\n"
+    "❌ Botões e legendas serão <b>automaticamente removidos</b>.\n\n"
+    "👉 <b>Experimente agora!</b>"
 )
 
     await update.message.reply_text(welcome_message, parse_mode="HTML")
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Responde ao comando /help com instruções de uso.
-    """
-    help_message = (
-        "ℹ️ <b>Como usar o Bot Anônimo</b>\n\n"
-        "1. Use o comando /start para iniciar.\n"
-        "2. Envie uma mensagem de texto ou mídia (foto, vídeo, GIF).\n"
-        "3. Sua mensagem será encaminhada ao administrador de forma anônima.\n"
-        "4. Se enviar mídia, as legendas serão removidas e seu conteúdo será agrupado."
-    )
-    await update.message.reply_text(help_message, parse_mode="HTML")
-
 async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Processa mensagens de texto, enviando uma cópia para o administrador e fazendo echo para o usuário.
+    Processa mensagens de texto normais (quando o bot não está aguardando legenda).
     """
+    user_id = update.message.chat_id
     try:
-        user_id = update.message.chat_id
         user_name = update.message.from_user.first_name or "N/A"
         username = update.message.from_user.username or "N/A"
         mensagem = update.message.text
@@ -134,110 +132,183 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             f"📩 <b>Nova mensagem recebida:</b>\n\n"
             f"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
             f"🔹 <b>Nome:</b> {user_name}\n"
-            f"🔹 <b>Username:</b> @{username if username != 'N/A' else 'N/A'}\n\n"
+            f"🔹 <b>Username:</b> @{username}\n\n"
             f"💬 <b>Mensagem:</b>\n{safe_escape(mensagem)}"
         )
         await context.bot.send_message(chat_id=ADMIN_ID, text=mensagem_info, parse_mode="HTML")
         await update.message.reply_text(mensagem)
     except Exception as e:
-        await notificar_erro(context, e, user_id=update.message.chat_id)
+        await notificar_erro(context, e, user_id=user_id)
+
+
+
+import asyncio
 
 async def receber_midia(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Processa mídias (foto, vídeo, GIF) e as agrupa para envio.
+    Processa mídias (foto, vídeo, GIF) e pergunta se o usuário deseja adicionar legenda.
+    Se o usuário enviar um álbum (múltiplas mídias) de uma só vez, a pergunta será feita apenas uma vez.
     """
+    user_id = update.message.chat_id
     try:
-        user_id = update.message.chat_id
-        user_name = update.message.from_user.first_name or "N/A"
-        username = update.message.from_user.username or "N/A"
-        caption = safe_escape(update.message.caption or "")
-
-        # Armazenamento do álbum do usuário
+        # Obtém ou inicializa o álbum do usuário (armazenado em context.user_data["albums"])
         user_albums = context.user_data.setdefault("albums", {})
         album = user_albums.setdefault(user_id, {
             "media": [],
             "original_captions": [],
             "timer": None,
-            "user_info_sent": False
+            "user_info_sent": False,
+            "waiting_for_caption": False,
+            "question_sent": False,  # flag para enviar a pergunta apenas uma vez
+            "user_name": None,
+            "username": None,
         })
 
-        # Processar mídia conforme o tipo
+        # Armazena as informações do usuário (caso ainda não estejam armazenadas)
+        if album["user_name"] is None:
+            album["user_name"] = update.message.from_user.first_name or "N/A"
+        if album["username"] is None:
+            album["username"] = update.message.from_user.username or "N/A"
+
+        # Cria o objeto InputMedia de acordo com o tipo de mídia
         if update.message.photo:
             media = InputMediaPhoto(media=update.message.photo[-1].file_id)
-            album["original_captions"].append(caption)
         elif update.message.video:
             media = InputMediaVideo(media=update.message.video.file_id)
-            album["original_captions"].append(caption)
         elif update.message.animation:
-            # Processa GIF separadamente (sem agrupar)
-            await context.bot.send_animation(
-                chat_id=ADMIN_ID,
-                animation=update.message.animation.file_id,
-                caption=caption
-            )
-            await context.bot.send_animation(
-                chat_id=user_id,
-                animation=update.message.animation.file_id,
-                caption=None
-            )
-            return
+            # Trata animações (GIFs) como InputMediaAnimation
+            media = InputMediaAnimation(media=update.message.animation.file_id)
         else:
             await update.message.reply_text("⚠️ Formato não suportado!")
             return
 
+        # Adiciona a mídia ao álbum do usuário
         album["media"].append(media)
+        album["waiting_for_caption"] = False  # garante que o flag esteja zerado
 
-        # Cancelar timer anterior, se existir, para evitar envios duplicados
-        if album["timer"]:
-            album["timer"].cancel()
-        album["timer"] = asyncio.create_task(
-            enviar_album(user_id, user_name, username, album, context)
-        )
-    except Exception as e:
-        await notificar_erro(context, e, user_id=update.message.chat_id)
-
-async def enviar_album(user_id: int, user_name: str, username: str, album: dict, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Aguarda um breve intervalo e envia o álbum (agrupamento de mídias) para o administrador e para o usuário.
-    """
-    await asyncio.sleep(3)
-    if album["media"]:
-        try:
-            admin_media = []
-            user_media = []
+        # Se ainda não foi enviada a pergunta para este álbum, envia os textos com intervalo
+        if not album["question_sent"]:
+            await update.message.reply_text("ℹ️ A legenda original ou botões da mídia serão removidos antes de reenviar.")
+            await asyncio.sleep(1)  # Pausa de 2 segundos entre mensagens
             
-            for i, media in enumerate(album["media"]):
-                admin_caption = album["original_captions"][i] if i == 0 else None
-                if isinstance(media, InputMediaPhoto):
-                    admin_media.append(InputMediaPhoto(
-                        media=media.media,
-                        caption=admin_caption
-                    ))
-                    user_media.append(InputMediaPhoto(media=media.media))
-                else:
-                    admin_media.append(InputMediaVideo(
-                        media=media.media,
-                        caption=admin_caption
-                    ))
-                    user_media.append(InputMediaVideo(media=media.media))
-                    
-            # Enviar informações do usuário (apenas uma vez)
-            if not album["user_info_sent"]:
-                await enviar_info_usuario(user_id, user_name, username, context)
-                album["user_info_sent"] = True
+            await update.message.reply_text("ℹ️ A legenda será aplicada a todas as mídias enviadas de uma vez. Caso não queira adicionar uma legenda, clique em 'Não'.")
+            await asyncio.sleep(2)  # Pausa de 2 segundos entre mensagens
 
-            # Envia os grupos de mídia em chunks (máximo 10 por envio)
-            for chunk in [admin_media[i:i+10] for i in range(0, len(admin_media), 10)]:
-                await context.bot.send_media_group(chat_id=ADMIN_ID, media=chunk)
-            for chunk in [user_media[i:i+10] for i in range(0, len(user_media), 10)]:
-                await context.bot.send_media_group(chat_id=user_id, media=chunk)
+            # Adiciona os botões
+            keyboard = [
+                [InlineKeyboardButton("✅ Sim, adicionar legenda", callback_data=f"add_caption_{user_id}")],
+                [InlineKeyboardButton("❌ Não, enviar sem legenda", callback_data=f"no_caption_{user_id}")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text("📝 Deseja adicionar uma legenda à(s) mídia(s)?", reply_markup=reply_markup)
+            
 
-        except Exception as e:
-            await notificar_erro(context, e, user_id=user_id)
-        finally:
-            album["media"].clear()
-            album["original_captions"].clear()
-            album["user_info_sent"] = False
+
+
+
+            album["question_sent"] = True
+
+    except Exception as e:
+        await notificar_erro(context, e, user_id=user_id)
+
+
+
+async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Processa a resposta do usuário sobre adicionar ou não legenda e substitui os botões pela escolha feita.
+    """
+    query = update.callback_query
+    user_id = query.message.chat_id
+    callback_data = query.data
+
+    # Obtém o álbum do usuário
+    album = context.user_data.get("albums", {}).get(user_id)
+    if not album:
+        await query.message.edit_text("⚠️ Ocorreu um erro ao processar sua resposta. Tente novamente.")
+        return
+
+    # Define o texto que substituirá os botões
+    if f"add_caption_{user_id}" in callback_data:
+        album["waiting_for_caption"] = True
+        new_text = "📝✍️  envie a legenda que deseja adicionar:"
+    elif f"no_caption_{user_id}" in callback_data:
+        new_text = "❌ Você optou por enviar sem legenda."
+        await enviar_album(user_id, album, context, None)  # Envia as mídias sem legenda
+
+    # Substitui a mensagem com botões pelo novo texto
+    await query.message.edit_text(new_text)
+
+
+
+
+
+
+async def receber_texto_unificado(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Handler unificado para mensagens de texto:
+      - Se o bot estiver aguardando legenda, trata a mensagem como legenda.
+      - Caso contrário, trata como mensagem de texto normal.
+    """
+    user_id = update.message.chat_id
+    album = context.user_data.get("albums", {}).get(user_id)
+    if album and album.get("waiting_for_caption"):
+        caption = update.message.text
+        await enviar_album(user_id, album, context, caption)
+        album["waiting_for_caption"] = False
+    else:
+        await receber_texto(update, context)
+
+async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_TYPE, caption: str) -> None:
+    """
+    Envia um álbum de mídias (fotos, vídeos e GIFs) garantindo que:
+      - Fotos e vídeos sejam enviados em grupos de até 10 itens.
+      - GIFs sejam enviados individualmente, sempre com legenda aplicada.
+    """
+    await asyncio.sleep(3)  # Aguarda um tempo para agregar todas as mídias
+
+    if not album["media"]:
+        return  # Se não houver mídias, sai da função
+
+    try:
+        group_media = []      # Lista para fotos e vídeos agrupáveis
+        individual_gifs = []  # Lista para animações (GIFs) que devem ser enviadas separadamente
+
+        # Processa cada mídia e separa por tipo
+        for media in album["media"]:
+            if isinstance(media, (InputMediaPhoto, InputMediaVideo)):
+                group_media.append(media)
+            elif isinstance(media, InputMediaAnimation):
+                individual_gifs.append(media)  # Armazena os GIFs para envio individual
+
+        # Envia fotos e vídeos em grupos de até 10 itens
+        for i in range(0, len(group_media), 10):
+            chunk = group_media[i:i+10]
+
+            # Aplica legenda apenas na primeira mídia do grupo
+            if caption:
+                chunk[0] = (
+                    InputMediaPhoto(media=chunk[0].media, caption=caption)
+                    if isinstance(chunk[0], InputMediaPhoto)
+                    else InputMediaVideo(media=chunk[0].media, caption=caption)
+                )
+
+            await context.bot.send_media_group(chat_id=user_id, media=chunk)
+            await context.bot.send_media_group(chat_id=ADMIN_ID, media=chunk)
+
+        # 🚀 Envia os GIFs individualmente, garantindo que cada um receba a legenda
+        for gif in individual_gifs:
+            await context.bot.send_animation(chat_id=user_id, animation=gif.media, caption=caption if caption else None)
+            await context.bot.send_animation(chat_id=ADMIN_ID, animation=gif.media, caption=caption if caption else None)
+
+    except Exception as e:
+        await notificar_erro(context, e, user_id=user_id)
+    finally:
+        # Limpa o álbum para permitir novos envios
+        album["media"].clear()
+        album["original_captions"].clear()
+        album["user_info_sent"] = False
+        album["waiting_for_caption"] = False
+        album["question_sent"] = False
 
 # ------------------------------
 # Função Principal
@@ -251,12 +322,11 @@ def main() -> None:
 
     # Registrando handlers
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receber_texto))
-    app.add_handler(MessageHandler(
-        filters.PHOTO | filters.VIDEO | filters.ANIMATION,
-        receber_midia
-    ))
+    app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO | filters.ANIMATION, receber_midia))
+    app.add_handler(CallbackQueryHandler(callback_handler))
+    # Handler unificado para mensagens de texto (para legenda ou mensagem normal)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receber_texto_unificado))
+    
     app.add_error_handler(error_handler)
 
     # Inicia o polling
