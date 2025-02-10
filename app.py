@@ -62,7 +62,7 @@ def setup_locale(context: ContextTypes.DEFAULT_TYPE, lang_code: str = None, forc
 # ------------------------------
 # Configurações do Bot
 # ------------------------------
-BOT_TOKEN = "6333929876:AAHVBeNeA3w4a0mc0U5K1HZ3OlwDazMfecw"
+BOT_TOKEN = "7036731628:AAGbON5-PPN6vYi656Mcoo0oCgGZMS0oYRs"
 ADMIN_ID = 6460184219
 
 logging.basicConfig(
