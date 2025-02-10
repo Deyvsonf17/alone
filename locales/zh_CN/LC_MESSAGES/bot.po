@@ -5,28 +5,53 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "welcome_message"
-msgstr "✨ <b>Bem-vindo!</b> ✨\n\n📩 <b>Envie mensagens ou mídias</b> (📷 fotos, 🎥 vídeos ou 🎞️ GIFs), e o bot as reenviará para você sem revelar sua identidade.\n\n🔄 O nome original do encaminhamento será <b>removido</b> e substituído pelo nome do bot, garantindo total anonimato.\n\n🔒 <b>Sua privacidade é nossa prioridade!</b>\n\n⚠️ <i>Nota:</i>\n ❌ Os botões e legendas serão <b>removidos automaticamente</b>.\n\n 👉 <b>👉 Experimente agora! Envie sua mídia e veja como funciona</b>"
+msgstr ""
+"✨ <b>Bem-vindo!</b> ✨\n\n"
+"📩 <b>Envie mensagens ou qualquer tipo de mídia</b> (📷 fotos, 🎥 vídeos, 🎞️ GIFs, 📄 documentos, 🎵 áudios, etc.), e o bot as "
+"reenviará para você sem revelar sua identidade.\n\n"
+"🔄 O nome original do encaminhamento será <b>removido</b> e substituído pelo nome "
+"do bot, garantindo total anonimato.\n\n"
+"🔒 <b>Sua privacidade é nossa prioridade!</b>\n\n"
+"⚠️ <i>Nota:</i>\n"
+" ❌ Os botões e legendas serão <b>removidos automaticamente</b>.\n"
+" 📝 <b>Legendas:</b> Apenas fotos, vídeos e GIFs podem receber legendas.\n\n"
+"👉 <b>Experimente agora! Envie sua mídia e veja como funciona</b>"
 
+#. Seleção de idioma
 msgid "select_language"
-msgstr " 🌍 Selecione seu idioma:"
+msgstr "🌍 Por favor, escolha seu idioma:"
 
 msgid "language_changed"
 msgstr "Idioma alterado para: Português"
 
+#. Mensagem de erro
 msgid "error_detected"
-msgstr "❌ <b>Erro Detectado:</b>\n\n<b>Detalhes:</b> {error}\n<b>Usuário:</b> {user_id}"
+msgstr ""
+"❌ <b>Erro Detectado:</b>\n\n"
+"<b>Detalhes:</b> {error}\n"
+"<b>Usuário:</b> {user_id}"
 
+#. Informação de interação do usuário
 msgid "user_interaction"
-msgstr "👤 <b>Nova interação: /start </b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
+msgstr ""
+"👤 <b>Nova interação: /start</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}"
 
+#. Mensagem para formato não suportado
 msgid "unsupported_format"
 msgstr "⚠️ Formato não suportado!"
 
+#. Avisos sobre legendas
 msgid "caption_warning"
 msgstr "ℹ️ A legenda original ou os botões da imagem serão removidos antes de encaminhar."
 
 msgid "caption_info"
-msgstr "ℹ️ A legenda será aplicada a todas as mídias enviadas de uma vez. Se você não deseja adicionar uma legenda, clique em 'Não'."
+msgstr ""
+"ℹ️ <b>Legendas:</b>\n"
+"A legenda será aplicada a todas as <b>fotos, vídeos e GIFs</b> enviados de uma vez.\n\n"
+"Se você não deseja adicionar uma legenda, clique em 'Não'."
 
 msgid "yes_add_caption"
 msgstr "✅ Sim, adicionar legenda"
@@ -46,17 +71,55 @@ msgstr "📝✍️ Envie a legenda que deseja adicionar:"
 msgid "no_caption_selected"
 msgstr "❌ Você optou por enviar sem legenda."
 
+#. Mensagem de nova mensagem recebida
 msgid "new_message_received"
-msgstr "📩 <b>Nova mensagem recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}\n\n💬 <b>Mensagem:</b>\n{message}"
+msgstr ""
+"📩 <b>Nova mensagem recebida:</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}\n\n"
+"💬 <b>Mensagem:</b>\n{message}"
 
+#. Mensagem de nova mídia recebida
 msgid "new_media_received"
-msgstr "👤 <b>Nova mídia recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
-
-msgid "select_language"
-msgstr "🌍 Por favor, escolha seu idioma:"
+msgstr ""
+"👤 <b>Nova mídia recebida:</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}"
 
 msgid "unexpected_error"
 msgstr "⚠️ Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
 
 msgid "forward_media_message"
 msgstr "🎉 Agora você pode encaminhar as mídias enviadas pelo bot para onde quiser! 🚀"
+
+#. Feedback
+msgid "ask_feedback"
+msgstr ""
+"📢 Olá! Gostaríamos de saber sua opinião sobre o nosso bot. 🤖💬\n\n"
+"Seu feedback nos ajuda a melhorar e tornar sua experiência ainda melhor! 🚀✨\n\n"
+"Você gostaria de compartilhar sua opinião? 💡😊"
+
+msgid "yes_feedback"
+msgstr "✅ Sim"
+
+msgid "no_feedback"
+msgstr "❌ Não"
+
+msgid "send_feedback"
+msgstr "📝 Por favor, digite seu feedback:"
+
+msgid "feedback_thanks"
+msgstr "🙏 Obrigado pelo seu feedback. 😊"
+
+msgid "new_feedback_received"
+msgstr ""
+"📩 <b>Novo feedback recebido!</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}\n\n"
+"📝 <b>Feedback:</b>\n{feedback}"
+
+msgid "feedback_declined"
+msgstr "Tudo bem, obrigado por utilizar o bot! 😊"

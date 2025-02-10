@@ -4,36 +4,56 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#. Welcome message
 msgid "welcome_message"
-msgstr    "✨ <b>Welcome!</b> ✨\n\n
-"📩 <b>Send messages or media</b> (📷 photos, 🎥 videos, or 🎞️ GIFs), and the bot will forward them for you without revealing your identity.\n\n"
-"🔄 The original forwarding name will be <b>removed</b> and replaced with the bot’s name, ensuring complete anonymity.\n\n"
+msgstr ""
+"✨ <b>Welcome!</b> ✨\n\n"
+"📩 <b>Send messages or any type of media</b> (📷 photos, 🎥 videos, 🎞️ GIFs, 📄 documents, 🎵 audios, etc.), and the bot will forward them "
+"to you without revealing your identity.\n\n"
+"🔄 The original forwarding name will be <b>removed</b> and replaced by the bot's name, ensuring complete anonymity.\n\n"
 "🔒 <b>Your privacy is our priority!</b>\n\n"
 "⚠️ <i>Note:</i>\n"
-"❌ Buttons and captions will be <b>automatically removed</b>.\n\n"
-"👉 <b>👉 Try it now! Send your media and see how it works</b>"
+" ❌ Buttons and captions will be <b>automatically removed</b>.\n"
+" 📝 <b>Captions:</b> Only photos, videos, and GIFs can have captions.\n\n"
+"👉 <b>Try it now! Send your media and see how it works</b>"
 
-
+#. Language selection
 msgid "select_language"
-msgstr " 🌍 Select your language:"
+msgstr "🌍 Please choose your language:"
 
 msgid "language_changed"
-msgstr "Language changed to: American English"
+msgstr "Language changed to: English"
 
+#. Mensagem de erro
 msgid "error_detected"
-msgstr "❌ <b>Erro Detectado:</b>\n\n<b>Detalhes:</b> {error}\n<b>Usuário:</b> {user_id}"
+msgstr ""
+"❌ <b>Erro Detectado:</b>\n\n"
+"<b>Detalhes:</b> {error}\n"
+"<b>Usuário:</b> {user_id}"
 
+#. Informação de interação do usuário
 msgid "user_interaction"
-msgstr "👤 <b>Nova interação: /start </b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
+msgstr ""
+"👤 <b>Nova interação: /start</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}"
 
+#. Unsupported format message
 msgid "unsupported_format"
 msgstr "⚠️ Unsupported format!"
 
+#. Caption warnings
 msgid "caption_warning"
-msgstr "ℹ️ The original caption or media buttons will be removed before forwarding."
+msgstr "ℹ️ The original caption or buttons will be removed before forwarding."
+
 
 msgid "caption_info"
-msgstr "ℹ️ The caption will be applied to all media sent at once. If you do not wish to add a caption, click 'No'."
+msgstr ""
+"ℹ️ <b>Captions:</b>\n"
+"The caption will be applied to all <b>photos, videos, and GIFs</b> sent at once.\n\n"
+"If you do not wish to add a caption, click 'No'."
+
 
 msgid "yes_add_caption"
 msgstr "✅ Yes, add caption"
@@ -42,31 +62,66 @@ msgid "no_add_caption"
 msgstr "❌ No, send without caption"
 
 msgid "ask_caption"
-msgstr "📝 Would you like to add a caption to the media?"
+msgstr "📝 Do you want to add a caption to the media?"
 
 msgid "callback_error"
-msgstr "⚠️ There was an error processing your response. Please try again."
+msgstr "⚠️ An error occurred while processing your response. Please try again."
 
 msgid "send_caption"
-msgstr "📝✍️ Send the caption you wish to add:"
+msgstr "📝✍️ Send the caption you want to add:"
 
 msgid "no_caption_selected"
 msgstr "❌ You chose to send without a caption."
 
+#. Mensagem de nova mensagem recebida
 msgid "new_message_received"
-msgstr "📩 <b>Nova mensagem recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}\n\n💬 <b>Mensagem:</b>\n{message}"
+msgstr ""
+"📩 <b>Nova mensagem recebida:</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}\n\n"
+"💬 <b>Mensagem:</b>\n{message}"
 
+#. Mensagem de nova mídia recebida
 msgid "new_media_received"
-msgstr "👤 <b>Nova mídia recebida:</b>\n\n🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n🔹 <b>Nome:</b> {user_name}\n🔹 <b>Username:</b> @{username}"
-
-
-msgid "select_language"
-msgstr " 🌍 Please choose your language:"
+msgstr ""
+"👤 <b>Nova mídia recebida:</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}"
 
 msgid "unexpected_error"
 msgstr "⚠️ An unexpected error occurred. Please try again later."
 
-
 msgid "forward_media_message"
-msgstr "🎉 You can now forward the media sent by the bot anywhere you want! 🚀"
+msgstr "🎉 You can now forward the media sent by the bot wherever you want! 🚀"
 
+#. Feedback
+msgid "ask_feedback"
+msgstr ""
+"📢 Hello! We would love to hear your feedback on our bot. 🤖💬\n\n"
+"Your feedback helps us improve and make your experience even better! 🚀✨\n\n"
+"Would you like to share your opinion? 💡😊"
+
+msgid "yes_feedback"
+msgstr "✅ Yes"
+
+msgid "no_feedback"
+msgstr "❌ No"
+
+msgid "send_feedback"
+msgstr "📝 Please type your feedback:"
+
+msgid "feedback_thanks"
+msgstr "🙏 Thank you for your feedback. 😊"
+
+msgid "new_feedback_received"
+msgstr ""
+"📩 <b>Novo feedback recebido!</b>\n\n"
+"🔹 <b>ID do Usuário:</b> <code>{user_id}</code>\n"
+"🔹 <b>Nome:</b> {user_name}\n"
+"🔹 <b>Username:</b> @{username}\n\n"
+"📝 <b>Feedback:</b>\n{feedback}"
+
+msgid "feedback_declined"
+msgstr "That's okay, thank you for using the bot! 😊"
