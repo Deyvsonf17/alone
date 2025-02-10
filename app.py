@@ -62,7 +62,7 @@ def setup_locale(context: ContextTypes.DEFAULT_TYPE, lang_code: str = None, forc
 # ------------------------------
 # Configurações do Bot
 # ------------------------------
-BOT_TOKEN = "7036731628:AAGbON5-PPN6vYi656Mcoo0oCgGZMS0oYRs"
+BOT_TOKEN = "6333929876:AAHVBeNeA3w4a0mc0U5K1HZ3OlwDazMfecw"
 ADMIN_ID = 6460184219
 
 logging.basicConfig(
@@ -153,13 +153,12 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     _ = setup_locale(context)  # Carrega o idioma do usuário
     error_msg = _("unexpected_error")
     if update and isinstance(update, Update):
-        await update.effective_message.reply_text(error_msg)
+        await update.effective_message.reply_text(error_msg, parse_mode="HTML")
     await notificar_erro(context, context.error)
 
 # ------------------------------
 # Handlers de Mensagens
 # ------------------------------
-
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -196,12 +195,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Mensagem de boas-vindas com instruções para escolher o idioma
     welcome_message = _("welcome_message")
     welcome_msg = await update.message.reply_text(welcome_message, parse_mode="HTML")
-    await update.message.reply_text(_("select_language"), reply_markup=reply_markup)
+    await update.message.reply_text(_("select_language"), reply_markup=reply_markup, parse_mode="HTML")
 
     # Armazenar o ID da mensagem de boas-vindas para edição posterior
     context.user_data['welcome_msg_id'] = welcome_msg.message_id
-
-
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -218,7 +215,7 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         ] 
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(_("select_language"), reply_markup=reply_markup)
+    await update.message.reply_text(_("select_language"), reply_markup=reply_markup, parse_mode="HTML")
 
 async def language_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -266,39 +263,6 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.message.reply_text(mensagem)
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 async def receber_midia(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -388,9 +352,9 @@ async def receber_midia(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         # Se houver mídias que suportam legendas, pergunta sobre a legenda no final
         if album["media"] and not album["question_sent"]:
-            await update.message.reply_text(_("caption_warning"))
+            await update.message.reply_text(_("caption_warning"), parse_mode="HTML")
             await asyncio.sleep(1)
-            await update.message.reply_text(_("caption_info"))
+            await update.message.reply_text(_("caption_info"), parse_mode="HTML")
             await asyncio.sleep(0.5)
 
             keyboard = [
@@ -398,25 +362,11 @@ async def receber_midia(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 [InlineKeyboardButton(_("no_add_caption"), callback_data=f"no_caption_{user_id}")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text(_("ask_caption"), reply_markup=reply_markup)
+            await update.message.reply_text(_("ask_caption"), reply_markup=reply_markup, parse_mode="HTML")
             album["question_sent"] = True
 
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_TYPE, caption: str, update: Update = None) -> None:
     """
@@ -452,9 +402,9 @@ async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_
                 # Adiciona a legenda à primeira mídia de cada lote
                 if caption:
                     if isinstance(lote[0], InputMediaPhoto):
-                        lote[0] = InputMediaPhoto(media=lote[0].media, caption=caption)
+                        lote[0] = InputMediaPhoto(media=lote[0].media, caption=caption, parse_mode="HTML")
                     elif isinstance(lote[0], InputMediaVideo):
-                        lote[0] = InputMediaVideo(media=lote[0].media, caption=caption)
+                        lote[0] = InputMediaVideo(media=lote[0].media, caption=caption, parse_mode="HTML")
 
                 # Envia o lote de mídias para o usuário e o administrador
                 await context.bot.send_media_group(chat_id=user_id, media=lote)
@@ -467,12 +417,14 @@ async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_
                     await context.bot.send_animation(
                         chat_id=user_id,
                         animation=media.media,
-                        caption=caption if caption else None
+                        caption=caption if caption else None,
+                        parse_mode="HTML"
                     )
                     await context.bot.send_animation(
                         chat_id=ADMIN_ID,
                         animation=media.media,
-                        caption=caption if caption else None
+                        caption=caption if caption else None,
+                        parse_mode="HTML"
                     )
 
         # Solicita feedback após o envio de todas as mídias
@@ -489,26 +441,6 @@ async def enviar_album(user_id: int, album: dict, context: ContextTypes.DEFAULT_
         if user_id in context.user_data.get("albums", {}):
             del context.user_data["albums"][user_id]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Processa callbacks de botões.
@@ -520,7 +452,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     album = context.user_data.get("albums", {}).get(user_id)
     if not album:
-        await query.message.edit_text(_("callback_error"))
+        await query.message.edit_text(_("callback_error"), parse_mode="HTML")
         return
 
     if f"add_caption_{user_id}" in callback_data:
@@ -533,7 +465,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await enviar_album(user_id, album, context, None, update)
         album["waiting_for_caption"] = False  # Limpa o estado
 
-    await query.message.edit_text(new_text)
+    await query.message.edit_text(new_text, parse_mode="HTML")
 
 async def receber_texto_unificado(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -572,7 +504,7 @@ async def feedback_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Marca que o feedback foi solicitado via comando
     context.user_data["feedback_via_command"] = True
     
-    await update.message.reply_text(_("send_feedback"))
+    await update.message.reply_text(_("send_feedback"), parse_mode="HTML")
     context.user_data["waiting_for_feedback"] = True
     
 async def solicitar_feedback(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -586,7 +518,7 @@ async def solicitar_feedback(user_id: int, context: ContextTypes.DEFAULT_TYPE) -
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     # Envia a mensagem de solicitação de feedback diretamente para o chat do usuário
-    await context.bot.send_message(chat_id=user_id, text=_("ask_feedback"), reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=user_id, text=_("ask_feedback"), reply_markup=reply_markup, parse_mode="HTML")
     
     # Armazena o estado de feedback no contexto do usuário
     context.user_data["waiting_for_feedback"] = True
@@ -602,12 +534,12 @@ async def processar_feedback_escolha(update: Update, context: ContextTypes.DEFAU
 
     if callback_data == "feedback_yes":
         # Solicita que o usuário digite o feedback
-        await query.message.edit_text(_("send_feedback"))
+        await query.message.edit_text(_("send_feedback"), parse_mode="HTML")
         context.user_data["waiting_for_feedback"] = True
     elif callback_data == "feedback_no":
         # Exibe uma mensagem específica para quando o usuário optar por não enviar feedback
-        await query.message.edit_text(_("feedback_declined"))
-        await query.message.reply_text(_("forward_media_message"))  # Informa que pode encaminhar as mídias
+        await query.message.edit_text(_("feedback_declined"), parse_mode="HTML")
+        await query.message.reply_text(_("forward_media_message"), parse_mode="HTML")  # Informa que pode encaminhar as mídias
         context.user_data["waiting_for_feedback"] = False
         
 async def receber_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -635,10 +567,10 @@ async def receber_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         
         # Verifica se foi solicitado via comando
         if context.user_data.get("feedback_via_command"):
-            await update.message.reply_text(_("feedback_thanks"))  # Apenas esta mensagem
+            await update.message.reply_text(_("feedback_thanks"), parse_mode="HTML")  # Apenas esta mensagem
         else:
-            await update.message.reply_text(_("feedback_thanks"))
-            await update.message.reply_text(_("forward_media_message"))  # Mantém para fluxo normal
+            await update.message.reply_text(_("feedback_thanks"), parse_mode="HTML")
+            await update.message.reply_text(_("forward_media_message"), parse_mode="HTML")  # Mantém para fluxo normal
 
     except Exception as e:
         await notificar_erro(context, e, user_id=user_id)
@@ -647,7 +579,7 @@ async def receber_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         context.user_data["waiting_for_feedback"] = False
         context.user_data.pop("feedback_via_command", None)  # Remove a flag
         
-        # ------------------------------
+# ------------------------------
 # Função Principal
 # ------------------------------
 def main() -> None:
